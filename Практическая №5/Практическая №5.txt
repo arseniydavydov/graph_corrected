@@ -1,0 +1,649 @@
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <map>
+#include <unordered_map>
+#include <array>
+#include <algorithm>
+#include <string>
+#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include<time.h>
+#include <queue>
+#include <stack>
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAX = 100;	
+
+class Graph {
+	private:
+		int Vertixes_;
+		int MatrixType_;	//0 -неориентированный, 1 - ориентированный
+		int **AdjacencyMatrix_;	//Матрица смежности
+		int **AdjacencyList_;	//Список смежности
+		int **IncidenceMatrix_;	//Матрица инцидентности
+		int Edges_;
+	public:
+		Graph(int tmp_vertixes, int tmp_type){	
+			Vertixes_ = tmp_vertixes;
+			MatrixType_ = tmp_type;
+			Edges_ = 0;
+			AdjacencyMatrix_ = new int*[MAX];
+			for(int i=0; i<MAX; i++)
+				AdjacencyMatrix_[i] = new int[MAX];
+			AdjacencyList_ = new int*[MAX];
+			for(int i=0; i<MAX; i++)
+				AdjacencyList_[i] = new int[MAX];
+			IncidenceMatrix_ = new int*[MAX];
+			for(int i=0; i<MAX; i++)
+				IncidenceMatrix_[i] = new int[MAX];
+			for(int i=0; i<MAX; i++)
+				for(int j=0; j<MAX; j++){
+					AdjacencyMatrix_[i][j] = 0;
+					AdjacencyList_[i][j] = 0;
+					IncidenceMatrix_[i][j] = 0;
+				}
+		}
+		void addElem(int first, int second);
+		void generateAdjacencyList();
+		void printGraph();
+		~Graph(){	//деструктор
+			for(int i=0; i<MAX; i++){
+				delete[] AdjacencyMatrix_[i];
+				delete[] AdjacencyList_[i];
+				delete[] IncidenceMatrix_[i];
+			}
+			delete[] AdjacencyMatrix_;
+			delete[] AdjacencyList_;
+			delete[] IncidenceMatrix_;
+		}
+};
+
+
+struct tnode {
+	int data;          
+	struct tnode *left; 
+	struct tnode *right; 
+	tnode() {}
+    tnode(int data): data(data) {}
+};
+
+tnode* insertNode(tnode* root, int key)
+{
+    if (root == NULL){
+        return new tnode(key);
+    }
+    if (key < root->data) {
+        root->left = insertNode(root->left, key);
+    }
+    else{
+        root->right = insertNode(root->right, key);
+    }
+    return root;
+}
+
+tnode* getMinimumKey(tnode* curr)
+{
+    while (curr->left != NULL){
+        curr = curr->left;
+    }
+    return curr;
+}
+
+void deleteNode(tnode* &root, int key);
+void searchKey(tnode* &curr, int key, tnode* &parent);
+void depthSearch(tnode* root);
+void widthSearch(tnode* root);
+
+
+struct node {
+    string sym;
+    float pro;
+    int arr[20];
+    int top;
+} p[20];
+ 
+typedef struct node node;
+
+void shannon(int l, int h, node p[])
+{
+    float pack1 = 0, pack2 = 0, diff1 = 0, diff2 = 0;
+    int i, d, k, j;
+    if ((l + 1) == h || l == h || l > h) {
+        if (l == h || l > h)
+            return;
+        p[h].arr[++(p[h].top)] = 0;
+        p[l].arr[++(p[l].top)] = 1;
+        return;
+    }
+    else {
+        for (i = l; i <= h - 1; i++)
+            pack1 = pack1 + p[i].pro;
+        pack2 = pack2 + p[h].pro;
+        diff1 = pack1 - pack2;
+        if (diff1 < 0)
+            diff1 = diff1 * -1;
+        j = 2;
+        while (j != h - l + 1) {
+            k = h - j;
+            pack1 = pack2 = 0;
+            for (i = l; i <= k; i++)
+                pack1 = pack1 + p[i].pro;
+            for (i = h; i > k; i--)
+                pack2 = pack2 + p[i].pro;
+            diff2 = pack1 - pack2;
+            if (diff2 < 0)
+                diff2 = diff2 * -1;
+            if (diff2 >= diff1)
+                break;
+            diff1 = diff2;
+            j++;
+        }
+        k++;
+        for (i = l; i <= k; i++)
+            p[i].arr[++(p[i].top)] = 1;
+        for (i = k + 1; i <= h; i++)
+            p[i].arr[++(p[i].top)] = 0;
+        shannon(l, k, p);
+        shannon(k + 1, h, p);
+    }
+}
+ 
+void sortByProbability(int n, node p[])
+{
+    int i, j;
+    node temp;
+    for (j = 1; j <= n - 1; j++) {
+        for (i = 0; i < n - 1; i++) {
+            if ((p[i].pro) > (p[i + 1].pro)) {
+                temp.pro = p[i].pro;
+                temp.sym = p[i].sym;
+                p[i].pro = p[i + 1].pro;
+                p[i].sym = p[i + 1].sym;
+                p[i + 1].pro = temp.pro;
+                p[i + 1].sym = temp.sym;
+            }
+        }
+    }
+}
+
+void huffman(int n, node p[])
+{
+    int i, j, temp = 1;
+    cout << "\n\nМетод Хаффмена\nСимвол\tВероятность\tКод";
+    cout <<"\n"<< p[n-1].sym <<"\t"<<p[n-1].pro<<"\t\t"<<'0';
+    for(i = n - 2; i >= 1; i--){
+    	cout <<"\n"<< p[i].sym <<"\t"<<p[i].pro<<"\t\t";
+    	for(j=0; j<temp; j++)
+    		cout<<'1';
+    	temp++;
+		cout<<'0';
+	}
+	cout<<"\n"<< p[0].sym <<"\t"<<p[0].pro<<"\t\t";
+	for(i=0; i<n-1; i++)
+		cout<<'1';
+}
+
+void display(int n, node p[])
+{
+    int i, j;
+    cout << "\nМетод Шеннона-Фэно\nСимвол\tВероятность\tКод";
+    for (i = n - 1; i >= 0; i--) {
+        cout <<"\n"<< p[i].sym <<"\t"<<p[i].pro<<"\t\t";
+        for (j = 0; j <= p[i].top; j++)
+            cout << p[i].arr[j];
+    }
+}
+
+void algorithmLZ77(const string& inputUser, int bufferSize, int dictionarySize) {
+	vector<vector<string>> outputModel;
+	int indexChar = 0;
+    while (indexChar < inputUser.length()) {
+       	int bestLength = 0;
+       	int bestOffset = 0;
+       	string nextChar = "";
+       	int maxOffset = min(indexChar, dictionarySize);
+       	int maxLength = min(static_cast<int>(inputUser.length()) - indexChar, bufferSize);
+       	for (int offset = 1; offset <= maxOffset; offset++) {
+           	for (int length = 1; length <= maxLength; length++) {
+               	string stringWindow = inputUser.substr(indexChar - offset, length);
+               	string stringBuffer = inputUser.substr(indexChar, length);
+               	if (stringWindow == stringBuffer && length > bestLength) {
+                   	bestLength = length;
+                   	bestOffset = (offset - dictionarySize) * (-1);
+                   	if (indexChar + length < inputUser.length()) {
+                       	nextChar = inputUser.substr(indexChar + length, 1);
+                   	}
+               	}
+           	}
+       	}
+       	if (indexChar == inputUser.length() - 1) {
+           	outputModel.push_back({inputUser.substr(max(0, indexChar - dictionarySize), indexChar), inputUser.substr(indexChar, min(indexChar + bufferSize, static_cast<int>(inputUser.length()))),"<0,0," + inputUser.substr(indexChar, 1) + ">"});
+       	} else {
+           	outputModel.push_back({inputUser.substr(max(0, indexChar - dictionarySize), indexChar),inputUser.substr(indexChar, min(indexChar + bufferSize, static_cast<int>(inputUser.length()))),"<" + to_string(bestOffset) + "," + to_string(bestLength) + "," +(bestLength > 0 ? nextChar : inputUser.substr(indexChar, 1)) + ">"});
+       	}
+       	indexChar += bestLength + 1;
+    }
+    for (size_t i = 0; i < outputModel.size(); i++) {
+    	string& str = outputModel[i][1];
+    	if (str.length() > bufferSize) {
+        	str = str.substr(0, bufferSize);
+    	} else if (str.length() < bufferSize) {
+        	int padding = bufferSize - str.length();
+        	str += string(padding, ' ');
+    	}
+    	string& leng = outputModel[i][0];
+    	if (leng.length() > dictionarySize) {
+        	leng = leng.substr(0, dictionarySize);
+    	} else if (leng.length() < dictionarySize) {
+        	int padding = dictionarySize - leng.length();
+        	leng = string(padding, ' ') + leng; 
+    	}
+    	cout<<setw(dictionarySize)<<right<<outputModel[i][0]<<"  "<<outputModel[i][1]<<"  "<<outputModel[i][2]<<'\n';
+	}
+}
+
+void algorithmLZ78(string inputUser, int dictionarySize) {
+    vector<string> dictionary;
+    dictionary.push_back("");
+    unordered_map<string, int> frequency;
+    frequency[""] = 0;
+    vector<array<string, 3>> outputModel;
+    outputModel.push_back({"''", "", "0"});
+
+    int i = 0;
+    while (i < inputUser.length()) {
+        string windowSymbols = string(1, inputUser[i]);
+        int index = distance(dictionary.begin(), find(dictionary.begin(), dictionary.end(), windowSymbols));
+
+        while (index != dictionary.size() && i < inputUser.length() - 1) {
+            i++;
+            windowSymbols += inputUser[i];
+            index = distance(dictionary.begin(), find(dictionary.begin(), dictionary.end(), windowSymbols));
+        }
+
+        if (index == dictionary.size()) {
+            string code = "<" + to_string(distance(dictionary.begin(), find(dictionary.begin(), dictionary.end(), windowSymbols.substr(0, windowSymbols.length() - 1)))) + ", '" + windowSymbols.back() + "'>";
+            outputModel.push_back({ "'" + windowSymbols + "'", code, to_string(dictionary.size()) });
+            if (dictionary.size() == dictionarySize) {
+                auto lastUsed = min_element(frequency.begin(), frequency.end(),
+                    [](const pair<const string, int>& p1, const pair<const string, int>& p2) { return p1.second < p2.second; });
+                dictionary.erase(remove(dictionary.begin(), dictionary.end(), lastUsed->first), dictionary.end());
+                frequency.erase(lastUsed->first);
+            }
+            dictionary.push_back(windowSymbols);
+            frequency[windowSymbols] = 1;
+        } else {
+            frequency[windowSymbols]++;
+        }
+        i++;
+    }
+    string checkLastTwoSymbols = inputUser.length() > 1 ? inputUser.substr(inputUser.length() - 2) : "";
+    string lastItemOutputModel = dictionary.back();
+    if (lastItemOutputModel.find(checkLastTwoSymbols) == string::npos) {
+        string lastSymbol = inputUser.substr(i - 1);
+        string code = "<" + to_string(distance(dictionary.begin(), find(dictionary.begin(), dictionary.end(), ""))) + ", '" + lastSymbol + "'>";
+        outputModel.push_back({ "'" + lastSymbol + "'", code, to_string(dictionary.size()) });
+    }
+    for (size_t i = 0; i < outputModel.size(); i++) {
+    	cout<<setw(6)<< outputModel[i][0] << "  " <<setw(8)<< outputModel[i][1] << "  " << outputModel[i][2] << '\n';
+	}
+}
+
+static void algorithmLZSS(string inputUser, const int bufferSize, const int dictionarySize) {
+	vector<vector<string>> outputModel;
+    string dictionary = "";
+    string buffer = inputUser.substr(0, min(bufferSize, static_cast<int>(inputUser.length())));
+    inputUser = inputUser.substr(buffer.length());
+    while (!buffer.empty()) {
+        int offset = 0;
+        int length = 0;
+        for (int i = 1; i <= buffer.length(); i++) {
+            string subStr = buffer.substr(0, i);
+            int position = dictionary.rfind(subStr);
+            if (position != -1) {
+                offset = dictionarySize - static_cast<int>(dictionary.length()) + position;
+                length = subStr.length();
+            } else {
+                break;
+            }
+        }
+        string code;
+        int codeLength;
+        if (length > 0) {
+            code = "1<" + to_string(offset) + "," + to_string(length) + ">";
+            codeLength = static_cast<int>(log2(dictionarySize)) + static_cast<int>(log2(bufferSize)) + 2;
+        } else {
+            code = "0'" + buffer.substr(0, 1) + "'";
+            codeLength = 9;
+        }
+        outputModel.push_back({dictionary, buffer, code, to_string(codeLength)});
+        int shiftSize = max(length, 1);
+        dictionary += buffer.substr(0, shiftSize);
+        if (dictionary.length() > dictionarySize) {
+            dictionary = dictionary.substr(dictionary.length() - dictionarySize);
+        }
+        buffer = buffer.substr(shiftSize);
+        if (buffer.length() < bufferSize && !inputUser.empty()) {
+            int addSize = min(static_cast<int>(bufferSize - buffer.length()), static_cast<int>(inputUser.length()));
+            buffer += inputUser.substr(0, addSize);
+            inputUser = inputUser.substr(addSize);
+        }
+    }
+    for (size_t i = 0; i < outputModel.size(); i++) {
+    	cout<<setw(dictionarySize)<<right<< outputModel[i][0] << "  " <<setw(bufferSize)<<left<< outputModel[i][1] << "  " <<setw(7)<< outputModel[i][2] <<"  "<< outputModel[i][3]<< '\n';
+	}
+}
+
+
+int main(){
+    int m;	//Перменные: m - выбор пользователя в меню 
+    int temp;	//Вспомогательные переменные
+    tnode* root;
+	int tempNode, point;
+	root = NULL;
+    menu:   
+        cout << "Меню: " << '\n';
+        cout << "1. Вывода списка смежности, матрицы смежности и матрицы инцидентности" << '\n';
+        cout << "2. Класс бинарного дерева поиска" << '\n';
+        cout << "3. Метод Шеннона-Фэно и метод Хаффмена" << '\n';
+        cout << "4. Алгоритмы LZ77, LZSS, LZ78" << '\n';
+        cout << "5. Выход" << '\n';
+        cout << "Ваш выбор: ";
+        cin >> m;
+        switch(m) {
+            case 1:{ //Вывода списка смежности, матрицы смежности и матрицы инцидентности
+                int vertixes, first, second, type;
+                cout << "Введите количество вершин и тип графа(0 - неориентированный, 1 - ориентированный) через пробел:";
+                cin >> vertixes >> type;
+                Graph point(vertixes, type);
+                cout << "Введите рёбра по очереди в виде X Y. Для выхода введите 112 112\n";
+                while (first != 112, second != 112) {
+                    cin >> first >> second;
+                    if (first != 112, second != 112)
+                        point.addElem(first, second);
+                }
+                point.printGraph();
+                cout << '\n' << "Введите любую цифру для продолжения: ";
+                cin >> temp;
+                goto menu;
+            }
+            case 2:{// Класс бинарного дерева поиска
+                cout<<"Вводите узлы по очереди(1 узел - корень), для выхода введите 0\n";
+	            do{
+		            cout<<"Введите следующий узел: ";
+		            cin>>tempNode;
+		            if(tempNode != 0)
+			            root = insertNode(root, tempNode);
+	            }while(tempNode != 0);
+	            del:
+	            cout<<"\nОбход в глубину: ";
+	            depthSearch(root);
+	            cout<<endl;
+	            cout<<"Обход в ширину: ";
+	            widthSearch(root);
+	            cout<<endl;
+	            cout<<"Хотите ли удалить узел? (1-да,2-нет): ";
+	            cin>>point;
+	            if(point == 1){
+		            cout<<"Какой узел хотите удалить: ";
+		            cin>>tempNode;
+		            deleteNode(root, tempNode);	
+		            goto del;
+	                }
+
+                cout << '\n' << "Введите любую цифру для продолжения: ";
+                cin >> temp;
+                goto menu;                
+            } 
+            case 3:{// метод Шеннона-Фэно и метод Хаффмена
+                int n, t, i, j;
+                float total = 0;
+                string ch;
+                node tp;
+                cout<<"Как будете вводить данные (1 - вероятности, 2 - кол-во выпадений): ";
+                cin>>t;
+                cout<<endl;
+                cout<<"Ведите количество символов: ";
+                cin>>n;
+                for (i = 0; i < n; i++) {
+                    cout <<"Ведите "<< i + 1 <<" символ: ";
+                    cin>>ch;
+                    p[i].sym += ch;
+                }
+                float x[n];
+                cout<<endl;
+                if(t==1){
+    	            cout<<"Сумма вероятностей должна быть равно 1! Вероятности записывать в виде 0.X\n"<<endl;
+    	            for (i = 0; i < n-1; i++) {
+        	            cout << "Введите вероятность символа " << p[i].sym << ": ";
+        	            cin>>x[i];
+        	            p[i].pro = x[i];
+        	            total = total + p[i].pro;
+        	                if (total > 1) {
+            	                cout << "Ошибка! Сумма больше 1\n";
+            	                total = total - p[i].pro;
+            	                i--;
+        	                }
+    	            }
+    	            p[n-1].pro = 1 - total;
+    	            cout.precision(2);
+    	            cout << "Вероятность символа " << p[i].sym << ": "<< p[n-1].pro<<endl;
+	            }
+	            else{
+    	            for (i = 0; i < n; i++) {
+        	            cout << "Введите кол-во символа " << p[i].sym << ": ";
+        	            cin>>x[i];
+        	            p[i].pro = x[i];
+        	            total = total + p[i].pro;
+    	            }
+    	            for (i = 0; i < n; i++) {
+        	        p[i].pro = x[i]/total;
+    	            }
+	            }
+                sortByProbability(n, p);
+                for (i = 0; i < n; i++)
+                    p[i].top = -1;
+                    shannon(0, n - 1, p);
+                    cout.precision(3);
+                    display(n,p);
+                    huffman(n,p);
+                
+                cout << '\n' << "Введите любую цифру для продолжения: ";
+                cin >> temp;
+                goto menu;  
+            }
+            case 4: {//Алгоритмы LZ
+                	string input;
+	                size_t dictionarySize, bufferSize;
+                    cin.ignore();
+	                cout<<"Введите фразу: ";
+                    getline (cin, input);
+	                cout<<"Введите размер словаря (для всех методов): ";
+                    cin>>dictionarySize;
+                    cout<<"Введите размер буфера (для LZ77 и LZSS): ";
+                    cin>>bufferSize;
+                    cout<<"\nLZ77:\n";
+	                algorithmLZ77(input, bufferSize, dictionarySize);
+	                cout<<"\nLZ78:\n";
+	                algorithmLZ78(input, dictionarySize);
+                    cout<<"\nLZSS:\n";
+	                algorithmLZSS(input, bufferSize, dictionarySize);
+                    
+                cout << '\n' << "Введите любую цифру для продолжения: ";
+                cin >> temp;
+                goto menu; 
+            }
+            case 5:{
+                cout<<"Спасибо за использование данной программы!";
+            break;
+
+            }
+        }
+    
+}
+void Graph::addElem(int first, int second){
+	if(MatrixType_ == 0){
+		AdjacencyMatrix_[first][second] = AdjacencyMatrix_[second][first] = 1;
+		IncidenceMatrix_[first][Edges_] = IncidenceMatrix_[second][Edges_] = 1;
+	}
+	else {
+		AdjacencyMatrix_[first][second] = 1;
+		IncidenceMatrix_[first][Edges_] = 1;
+		IncidenceMatrix_[second][Edges_] = -1;
+	}
+	Edges_++;
+}
+
+void Graph::generateAdjacencyList(){
+	for(int i=0; i<=Vertixes_; i++){
+		int temp = 0;
+		for(int j=0; j<=Vertixes_; j++){
+			if(AdjacencyMatrix_[i][j] == 1){
+				AdjacencyList_[i][temp] = j;
+				temp++;
+			}
+		}
+	}
+}
+
+void Graph::printGraph(){
+	generateAdjacencyList();
+	cout<<"\nСписок смежности \n";
+	for(int i=0; i<=Vertixes_; i++){
+		bool tmp_column = false;
+		int j = 0;
+		cout<<'V'<<i<<": ";
+		do{
+			if(AdjacencyList_[i][j] != 0){
+				cout<<'V'<<AdjacencyList_[i][j]<<' ';
+				j++;
+			}
+			else
+				tmp_column = true;
+		}while(tmp_column != true);
+		cout<<';'<<endl;
+	}
+	cout<<"\nМатрица смежности \n";
+	cout<<"   ";
+	for(int i=0; i<=Vertixes_; i++){
+		cout<<" V"<<i;
+	}
+	cout<<endl;
+	for(int i=0; i<=Vertixes_; i++){
+		cout<<'V'<<i<<":";
+		for(int j=0; j<=Vertixes_; j++){
+			cout<<setw(3)<<right<<AdjacencyMatrix_[i][j];
+		}
+		cout<<endl;
+	}
+	cout<<"\nМатрица инцидентности \n";
+	cout<<"   ";
+	for(int i=1; i<=Edges_; i++){
+		cout<<" E"<<i;
+	}
+	cout<<endl;
+	for(int i=0; i<=Vertixes_; i++){
+		cout<<'V'<<i<<":";
+		for(int j=0; j<Edges_; j++){
+			cout<<setw(3)<<IncidenceMatrix_[i][j];
+		}
+		cout<<endl;
+	}
+}
+
+void deleteNode(tnode* &root, int key)
+{
+    tnode* parent = NULL;
+    tnode* curr = root;
+    searchKey(curr, key, parent);
+    if (curr == NULL) {
+        return;
+    }
+    if (curr->left == NULL && curr->right == NULL)
+    {
+        if (curr != root)
+        {
+            if (parent->left == curr) {
+                parent->left = NULL;
+            }
+            else {
+                parent->right = NULL;
+            }
+        }
+        else {
+            root = NULL;
+        }
+        free(curr); 
+    }
+    else if (curr->left && curr->right)
+    {
+        tnode* successor = getMinimumKey(curr->right);
+        int val = successor->data;
+        deleteNode(root, successor->data);
+        curr->data = val;
+    }
+    else {
+        tnode* child = (curr->left)? curr->left: curr->right;
+        if (curr != root)
+        {
+            if (curr == parent->left) {
+                parent->left = child;
+            }
+            else {
+                parent->right = child;
+            }
+        }
+        else {
+            root = child;
+        }
+        free(curr);
+    }
+}
+
+void searchKey(tnode* &curr, int key, tnode* &parent)
+{
+    while (curr != NULL && curr->data != key)
+    {
+        parent = curr;
+        if (key < curr->data) {
+            curr = curr->left;
+        }
+        else {
+            curr = curr->right;
+        }
+    }
+}
+
+void depthSearch(tnode* root){
+    stack<tnode*> nodeStack;
+    nodeStack.push(root);
+    while (!nodeStack.empty()) {
+        root = nodeStack.top();
+        cout<<root->data<<' ';
+        nodeStack.pop();
+        if (root-> right)
+          	nodeStack.push(root->right);
+        if (root-> left) 
+           	nodeStack.push(root->left);
+    }
+}
+
+void widthSearch(tnode* root){
+    queue<tnode* > nodeQueue;
+    nodeQueue.push(root);
+    while (!nodeQueue.empty()) {
+        root = nodeQueue.front();
+        cout<<root->data<<' ';
+        nodeQueue.pop();
+        if (root->left)
+            nodeQueue.push (root->left); 
+        if (root->right)
+            nodeQueue.push (root->right); 
+    }
+}
